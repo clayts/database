@@ -37,7 +37,7 @@ func init() {
 
 //Flush deletes all information in the database
 func Flush() {
-	log.Println(insist.OnString(db.FlushDB().Result()))
+	log.Println("flushing database:", insist.OnString(db.FlushDB().Result()))
 }
 
 //Terminate must be called before the program terminates.
