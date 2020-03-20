@@ -23,18 +23,19 @@ func getEnvironmentVariable(variableName string, defaultValue string) string {
 	}
 	return value
 }
-func initDB() {
+func init() {
 	redisURL := getEnvironmentVariable("REDIS_URL", "")
 	log.Println("initialising database")
 	opt, err := redis.ParseURL(redisURL)
 	insist.IsNil(err)
 	db = redis.NewClient(opt)
-	pong, err := db.Ping().Result()
-	log.Println("pinging:", pong, err)
+	pong := insist.OnString(db.Ping().Result())
+	log.Println("pinging:", pong)
 	gob.Register(map[string]interface{}{})
 }
 
-func termDB() {
+//Terminate must be called before the program terminates.
+func Terminate() {
 	if db != nil {
 		insist.IsNil(db.Close())
 	}
