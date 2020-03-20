@@ -43,6 +43,7 @@ func Flush() {
 func Terminate() {
 	if db != nil {
 		insist.IsNil(db.Close())
+		db = nil
 	}
 }
 
