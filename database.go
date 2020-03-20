@@ -34,6 +34,11 @@ func init() {
 	gob.Register(map[string]interface{}{})
 }
 
+//Flush deletes all information in the database
+func Flush() {
+	log.Println(insist.OnString(db.FlushDB().Result()))
+}
+
 //Terminate must be called before the program terminates.
 func Terminate() {
 	if db != nil {
