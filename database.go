@@ -1,4 +1,4 @@
-package main //import "github.com/clayts/database"
+package database //import "github.com/clayts/database"
 
 import (
 	"bytes"
