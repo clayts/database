@@ -12,7 +12,8 @@ import (
 
 var db *redis.Client
 
-var errNotFound = redis.Nil
+//ErrNotFound is returned when a key is not found
+var ErrNotFound = redis.Nil
 
 var maxDatabaseRetryAttempts = 3
 
