@@ -30,9 +30,7 @@ func init() {
 	opt, err := redis.ParseURL(redisURL)
 	insist.IsNil(err)
 	db = redis.NewClient(opt)
-	pong := insist.OnString(db.Ping().Result())
-	log.Println("pinging:", pong)
-	gob.Register(map[string]interface{}{})
+	insist.Is(insist.OnString(db.Ping().Result()), "OK")
 }
 
 //Flush deletes all information in the database
@@ -101,32 +99,29 @@ func (t Transaction) Exists(key string) bool {
 }
 
 //Read reads the given key into the given interface, which should be a pointer.
-func (t Transaction) Read(key string) func(e interface{}) error {
+func (t Transaction) Read(key string, value interface{}) error {
 	if _, ok := t.cache[key]; !ok {
 		if err := t.tx.Watch(key).Err(); err != nil {
-			return func(e interface{}) error { return err }
+			return err
 		}
 		value, err := t.tx.Get(key).Result()
 		if err != nil {
-			return func(e interface{}) error { return err }
+			return err
 		}
 		t.cache[key] = value
 	}
-
-	return gob.NewDecoder(bytes.NewBufferString(t.cache[key])).Decode
+	return gob.NewDecoder(bytes.NewBufferString(t.cache[key])).Decode(value)
 }
 
 //Write writes the given data into the database at the given key.
-func (t Transaction) Write(key string) func(e interface{}) error {
+func (t Transaction) Write(key string, value interface{}) error {
 	buffer := bytes.NewBuffer(nil)
 	encoder := gob.NewEncoder(buffer)
-	return func(e interface{}) error {
-		err := encoder.Encode(e)
-		if err != nil {
-			return err
-		}
-		t.cache[key] = buffer.String()
-		t.written[key] = struct{}{}
-		return nil
+	err := encoder.Encode(value)
+	if err != nil {
+		return err
 	}
+	t.cache[key] = buffer.String()
+	t.written[key] = struct{}{}
+	return nil
 }
