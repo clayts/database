@@ -17,15 +17,8 @@ var ErrNotFound = redis.Nil
 
 var maxDatabaseRetryAttempts = 3
 
-func getEnvironmentVariable(variableName string, defaultValue string) string {
-	value := os.Getenv(variableName)
-	if value == "" {
-		return defaultValue
-	}
-	return value
-}
 func init() {
-	redisURL := getEnvironmentVariable("REDIS_URL", "")
+	redisURL := os.Getenv("REDIS_URL")
 	log.Println("initialising database")
 	opt, err := redis.ParseURL(redisURL)
 	insist.IsNil(err)
@@ -53,11 +46,11 @@ type Transaction struct {
 	written map[string]struct{}
 }
 
-//Transact creates a temporary Transaction object and executes the given function.
+//Execute creates a temporary Transaction object and executes the given function.
 //Expect the function to be run several times, in case another process changes the data while it's being executed (see redis optimistic locking).
 //Because of this, be very careful about modifying data outside of the database in this function.
 //If the function returns an error, the transaction is aborted and no changes are made.
-func Transact(f func(t Transaction) error) error {
+func Execute(f func(t Transaction) error) error {
 	var err error
 	for i := 0; i < maxDatabaseRetryAttempts; i++ {
 		err = db.Watch(func(tx *redis.Tx) error {
