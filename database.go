@@ -23,7 +23,7 @@ func init() {
 	opt, err := redis.ParseURL(redisURL)
 	insist.IsNil(err)
 	db = redis.NewClient(opt)
-	insist.Is(insist.OnString(db.Ping().Result()), "OK")
+	insist.Is(insist.OnString(db.Ping().Result()), "PONG")
 }
 
 //Flush deletes all information in the database
